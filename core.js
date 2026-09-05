@@ -88,6 +88,75 @@ async function pendingFollowRequests() {
     }));
 }
 
+// Security Limits for Archive & Decompression Protection
+const SECURITY_LIMITS = {
+    MAX_ZIP_SIZE: 100 * 1024 * 1024,                // 100 MB max archive size
+    MAX_ENTRIES_IN_ZIP: 2500,                        // 2,500 entries max in ZIP
+    MAX_TARGET_JSON_FILES: 50,                       // 50 followers/following JSON chunks max
+    MAX_SINGLE_FILE_DECOMPRESSED: 40 * 1024 * 1024,  // 40 MB max decompressed size for a single JSON file
+    MAX_TOTAL_DECOMPRESSED: 100 * 1024 * 1024,       // 100 MB total decompressed JSON size across all files
+};
+
+/**
+ * Validates and sanitizes an Instagram username.
+ * Prevents HTML/script injection, limits length, and removes syntax/control characters.
+ */
+function sanitizeUsername(input) {
+    if (typeof input !== "string") return "";
+    return input.trim().replace(/[<>\"'&`=\/\\]/g, "").slice(0, 50);
+}
+
+/**
+ * Validates and sanitizes Instagram profile URLs.
+ * Strictly checks protocol (must be http/https) and hostname (must be instagram.com),
+ * completely blocking javascript:, data:, vbscript:, and malicious redirects.
+ */
+function sanitizeInstagramUrl(rawUrl, fallbackUsername = "") {
+    const cleanUser = encodeURIComponent(sanitizeUsername(fallbackUsername));
+    const safeFallback = cleanUser
+        ? `https://www.instagram.com/${cleanUser}`
+        : "https://www.instagram.com/";
+
+    if (!rawUrl || typeof rawUrl !== "string") {
+        return safeFallback;
+    }
+
+    const trimmed = rawUrl.trim();
+    const lower = trimmed.toLowerCase();
+
+    // Explicitly reject dangerous URL schemes
+    if (
+        lower.startsWith("javascript:") ||
+        lower.startsWith("data:") ||
+        lower.startsWith("vbscript:") ||
+        lower.startsWith("file:") ||
+        lower.startsWith("blob:")
+    ) {
+        return safeFallback;
+    }
+
+    try {
+        const parsed = new URL(trimmed, "https://www.instagram.com");
+        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+            return safeFallback;
+        }
+
+        const hostname = parsed.hostname.toLowerCase();
+        if (
+            hostname === "instagram.com" ||
+            hostname === "www.instagram.com" ||
+            hostname.endsWith(".instagram.com")
+        ) {
+            parsed.protocol = "https:";
+            return parsed.href;
+        }
+    } catch {
+        return safeFallback;
+    }
+
+    return safeFallback;
+}
+
 function parseFollowingsData(rawFollowing) {
     const flwings =
         rawFollowing?.relationships_following ||
@@ -95,18 +164,19 @@ function parseFollowingsData(rawFollowing) {
 
     return flwings
         .map((user) => {
-            const title =
+            const rawTitle =
                 user.title || user.string_list_data?.[0]?.value || "";
-            const href =
-                user.string_list_data?.[0]?.href ||
-                (title ? `https://www.instagram.com/${title}` : "");
-            const timeStamp =
+            const title = sanitizeUsername(rawTitle);
+            const rawHref = user.string_list_data?.[0]?.href || "";
+            const profileUrl = sanitizeInstagramUrl(rawHref, title);
+            const rawTimestamp =
                 user.string_list_data?.[0]?.timestamp || user.timestamp || 0;
+            const timeStamp = Number(rawTimestamp) || 0;
 
             return {
-                title: title.trim(),
-                profileUrl: href,
-                timeStamp: Number(timeStamp) || 0,
+                title,
+                profileUrl,
+                timeStamp: Number.isFinite(timeStamp) ? timeStamp : 0,
             };
         })
         .filter((user) => user.title !== "");
@@ -119,18 +189,19 @@ function parseFollowersData(rawFollowers) {
 
     return flwers
         .map((user) => {
-            const title =
+            const rawTitle =
                 user.string_list_data?.[0]?.value || user.title || "";
-            const href =
-                user.string_list_data?.[0]?.href ||
-                (title ? `https://www.instagram.com/${title}` : "");
-            const timeStamp =
+            const title = sanitizeUsername(rawTitle);
+            const rawHref = user.string_list_data?.[0]?.href || "";
+            const profileUrl = sanitizeInstagramUrl(rawHref, title);
+            const rawTimestamp =
                 user.string_list_data?.[0]?.timestamp || user.timestamp || 0;
+            const timeStamp = Number(rawTimestamp) || 0;
 
             return {
-                title: title.trim(),
-                profileUrl: href,
-                timeStamp: Number(timeStamp) || 0,
+                title,
+                profileUrl,
+                timeStamp: Number.isFinite(timeStamp) ? timeStamp : 0,
             };
         })
         .filter((user) => user.title !== "");
@@ -143,7 +214,7 @@ function parsePendingRequestsData(rawPending) {
 
     return pflwreq
         .map((user) => {
-            let username = "";
+            let rawUsername = "";
             if (Array.isArray(user.label_values)) {
                 const usernameItem =
                     user.label_values.find(
@@ -153,22 +224,22 @@ function parsePendingRequestsData(rawPending) {
                     ) ||
                     user.label_values[2] ||
                     user.label_values[1];
-                username = usernameItem?.value || "";
+                rawUsername = usernameItem?.value || "";
             } else if (user.string_list_data?.[0]?.value) {
-                username = user.string_list_data[0].value;
+                rawUsername = user.string_list_data[0].value;
             } else if (user.title) {
-                username = user.title;
+                rawUsername = user.title;
             }
 
-            username = (username || "").trim();
-
-            const timeStamp =
+            const username = sanitizeUsername(rawUsername);
+            const rawTimestamp =
                 user.timestamp || user.string_list_data?.[0]?.timestamp || 0;
+            const timeStamp = Number(rawTimestamp) || 0;
 
             return {
                 name: username,
-                id: `https://www.instagram.com/${username}`,
-                timeStamp: Number(timeStamp) || 0,
+                id: sanitizeInstagramUrl("", username),
+                timeStamp: Number.isFinite(timeStamp) ? timeStamp : 0,
                 category: "Pending Follow Requests",
             };
         })
@@ -182,16 +253,36 @@ async function processZipFile(zipFile, onProgress = null) {
         );
     }
 
+    if (!zipFile || typeof zipFile.size !== "number") {
+        throw new Error("Invalid file provided.");
+    }
+
+    // 1. Check archive file size before unzipping
+    if (zipFile.size > SECURITY_LIMITS.MAX_ZIP_SIZE) {
+        throw new Error(
+            `ZIP file exceeds maximum allowed size of 100 MB (${(zipFile.size / (1024 * 1024)).toFixed(1)} MB). Processing aborted to prevent system freeze.`,
+        );
+    }
+
     let zip;
     try {
         zip = await JSZip.loadAsync(zipFile);
     } catch (e) {
         throw new Error(
-            "Unable to open ZIP file. The file may be corrupt or not a valid archive.",
+            "Unable to open ZIP file. The file may be corrupt, password-protected, or invalid.",
         );
     }
 
-    const totalFilesInZip = Object.keys(zip.files).length;
+    const fileEntries = Object.keys(zip.files);
+    const totalFilesInZip = fileEntries.length;
+
+    // 2. Check entry count to protect against ZIP bombs (thousands of tiny files)
+    if (totalFilesInZip > SECURITY_LIMITS.MAX_ENTRIES_IN_ZIP) {
+        throw new Error(
+            `Archive contains an unusually large number of files (${totalFilesInZip}). Aborted to protect against potential ZIP bombs.`,
+        );
+    }
+
     if (onProgress) {
         await onProgress("unpack", {
             totalFiles: totalFilesInZip,
@@ -203,9 +294,16 @@ async function processZipFile(zipFile, onProgress = null) {
     let pendingFiles = [];
     let hasHtmlFiles = false;
 
-    zip.forEach((relativePath, file) => {
-        if (file.dir) return;
+    for (const relativePath of fileEntries) {
+        const file = zip.files[relativePath];
+        if (file.dir) continue;
+
+        // Path traversal protection: ignore relative traversal attempts
         const normalized = relativePath.toLowerCase().replace(/\\/g, "/");
+        if (normalized.includes("../") || normalized.startsWith("/")) {
+            continue;
+        }
+
         const filename = normalized.split("/").pop();
 
         if (filename.endsWith(".html")) {
@@ -229,7 +327,15 @@ async function processZipFile(zipFile, onProgress = null) {
         ) {
             pendingFiles.push(file);
         }
-    });
+    }
+
+    const totalTargetFiles =
+        followingFiles.length + followerFiles.length + pendingFiles.length;
+    if (totalTargetFiles > SECURITY_LIMITS.MAX_TARGET_JSON_FILES) {
+        throw new Error(
+            `Found ${totalTargetFiles} matching relation files, which exceeds the safety threshold (${SECURITY_LIMITS.MAX_TARGET_JSON_FILES}). Processing stopped.`,
+        );
+    }
 
     if (followingFiles.length === 0 && followerFiles.length === 0) {
         if (hasHtmlFiles) {
@@ -242,11 +348,41 @@ async function processZipFile(zipFile, onProgress = null) {
         );
     }
 
+    // Decompression monitor to prevent runaway memory expansion
+    let totalDecompressedBytes = 0;
+
+    async function safelyExtractAndParse(file) {
+        // Pre-check uncompressed size metadata from ZIP headers if available
+        const uncompressedSize = file._data?.uncompressedSize || 0;
+        if (uncompressedSize > SECURITY_LIMITS.MAX_SINGLE_FILE_DECOMPRESSED) {
+            throw new Error(
+                `Decompressed file "${file.name}" exceeds the maximum safety limit of 40 MB. Aborted to protect browser memory.`,
+            );
+        }
+
+        const text = await file.async("text");
+        totalDecompressedBytes += text.length;
+
+        if (totalDecompressedBytes > SECURITY_LIMITS.MAX_TOTAL_DECOMPRESSED) {
+            throw new Error(
+                "Total extracted JSON data exceeds the 100 MB safety limit. Aborted to protect against runaway memory expansion.",
+            );
+        }
+
+        // Parse with prototype pollution guard
+        return JSON.parse(text, (key, value) => {
+            if (key === "__proto__" || key === "constructor" || key === "prototype") {
+                return undefined;
+            }
+            return value;
+        });
+    }
+
     let followingData = [];
     for (const file of followingFiles) {
         try {
-            const text = await file.async("text");
-            followingData = followingData.concat(parseFollowingsData(JSON.parse(text)));
+            const parsed = await safelyExtractAndParse(file);
+            followingData = followingData.concat(parseFollowingsData(parsed));
         } catch (err) {
             console.warn("Failed parsing following file:", file.name, err);
         }
@@ -265,8 +401,8 @@ async function processZipFile(zipFile, onProgress = null) {
     let followersData = [];
     for (const file of followerFiles) {
         try {
-            const text = await file.async("text");
-            followersData = followersData.concat(parseFollowersData(JSON.parse(text)));
+            const parsed = await safelyExtractAndParse(file);
+            followersData = followersData.concat(parseFollowersData(parsed));
         } catch (err) {
             console.warn("Failed parsing followers file:", file.name, err);
         }
@@ -285,8 +421,8 @@ async function processZipFile(zipFile, onProgress = null) {
     let pendingData = [];
     for (const file of pendingFiles) {
         try {
-            const text = await file.async("text");
-            pendingData = pendingData.concat(parsePendingRequestsData(JSON.parse(text)));
+            const parsed = await safelyExtractAndParse(file);
+            pendingData = pendingData.concat(parsePendingRequestsData(parsed));
         } catch (err) {
             console.warn("Failed parsing pending file:", file.name, err);
         }

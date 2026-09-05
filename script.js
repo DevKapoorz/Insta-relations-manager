@@ -84,6 +84,12 @@ async function handleZipSelection(file) {
         return;
     }
 
+    const MAX_INPUT_FILE_SIZE = 100 * 1024 * 1024; // 100 MB max
+    if (file.size > MAX_INPUT_FILE_SIZE) {
+        setStatus(`File is too large (${formatFileSize(file.size)}). Maximum supported size is 100 MB to prevent browser freeze.`, "error");
+        return;
+    }
+
     setStatus("");
 
     // Switch from home page to dedicated loading page
@@ -304,9 +310,11 @@ async function showPeople() {
 
         let card = document.createElement("a");
         card.className = "person";
-        card.href = person.id;
+        card.href = typeof sanitizeInstagramUrl === "function"
+            ? sanitizeInstagramUrl(person.id, person.name)
+            : (person.id || "#");
         card.target = "_blank";
-        card.rel = "noopener noreferrer";
+        card.rel = "noopener noreferrer nofollow";
 
         let rawTime = Number(person.timeStamp) || 0;
         if (rawTime > 0 && rawTime < 1e11) {
@@ -327,23 +335,30 @@ async function showPeople() {
 
         const cleanName = person.name || "user";
 
-        card.innerHTML = `
-            <div class="details">
-                <div class="personName">@${cleanName}</div>
-                ${
-                    datime
-                        ? `<div class="TimeHappened">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            <span>${datime}</span>
-                        </div>`
-                        : ""
-                }
-            </div>
-        `;
+        const details = document.createElement("div");
+        details.className = "details";
 
+        const nameEl = document.createElement("div");
+        nameEl.className = "personName";
+        nameEl.textContent = `@${cleanName}`;
+        details.appendChild(nameEl);
+
+        if (datime) {
+            const timeEl = document.createElement("div");
+            timeEl.className = "TimeHappened";
+            timeEl.innerHTML = `
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            `;
+            const timeSpan = document.createElement("span");
+            timeSpan.textContent = datime;
+            timeEl.appendChild(timeSpan);
+            details.appendChild(timeEl);
+        }
+
+        card.appendChild(details);
         container.appendChild(card);
     });
 
