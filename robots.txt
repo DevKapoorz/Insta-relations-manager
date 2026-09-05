@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://devkapoorz.github.io/Insta-relations-manager/sitemap.xml
+

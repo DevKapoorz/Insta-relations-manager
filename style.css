@@ -59,15 +59,26 @@ body {
     overflow: hidden;
 }
 
+/* Info Page Container */
+
+.infopage-container {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 1;
+}
+
 /* Topbar */
 
 .topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-
+    position: relative;
     z-index: 100;
+    flex-shrink: 0;
 
     display: flex;
     align-items: center;
@@ -75,7 +86,7 @@ body {
 
     gap: 30px;
 
-    height: 78px;
+    min-height: 78px;
 
     padding: 17px clamp(20px, 4vw, 55px);
 
@@ -314,12 +325,8 @@ body {
 /* Main */
 
 main {
-    position: fixed;
-
-    top: 78px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
+    flex: 1;
 
     width: 100%;
     max-width: none;
@@ -332,6 +339,7 @@ main {
     overflow-x: hidden;
 
     scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* =========================================================
@@ -950,32 +958,41 @@ main::-webkit-scrollbar-thumb:active {
     .topbar {
         flex-direction: column;
         align-items: stretch;
-        gap: 14px;
-        padding: 16px 20px;
+        gap: 12px;
+        padding: 14px 20px;
+        min-height: auto;
     }
 
     .topbar h1 {
-        justify-content: center;
+        justify-content: flex-start;
+        font-size: 20px;
     }
 
     .controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
         width: 100%;
+    }
+
+    #newFileBtn {
+        flex-shrink: 0;
     }
 
     .controls input {
         flex: 1;
+        min-width: 0;
         width: auto;
     }
 
     .controls select,
     .controls .custom-select-wrapper,
     .controls .custom-select-btn {
-        min-width: 155px;
+        min-width: 145px;
     }
 
     main {
-        width: calc(100% - 24px);
-        margin-top: 24px;
+        padding: 24px 20px 48px;
     }
 
     .people {
@@ -986,89 +1003,343 @@ main::-webkit-scrollbar-thumb:active {
 
 /* Mobile */
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .topbar {
-        padding: 15px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        row-gap: 10px;
+        column-gap: 8px;
+        align-items: center;
+        padding: 12px 14px 14px;
+        min-height: auto;
+        border-bottom-color: rgba(226, 232, 240, 0.9);
     }
 
     .topbar h1 {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
         justify-content: flex-start;
-        font-size: 19px;
+        font-size: 16px;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .topbar h1 .app-logo-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+    }
+
+    .topbar h1 span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .controls {
-        flex-direction: column;
-        align-items: stretch;
+        display: contents;
     }
 
-    .controls input,
-    .controls select,
-    .controls .custom-select-wrapper,
-    .controls .custom-select-btn,
-    .controls .btn-secondary {
+    #newFileBtn {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+        height: 34px;
+        padding: 0 11px;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 9px;
+        white-space: nowrap;
+        gap: 5px;
+        box-shadow: none;
+    }
+
+    #newFileBtn svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    .controls input {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
         width: 100%;
-        justify-content: center;
+        height: 40px;
+        font-size: 16px !important; /* Prevents auto-zoom on iOS */
+        padding: 0 10px 0 34px;
+        background-position: 10px center;
+        border-radius: 10px;
+    }
+
+    .controls .custom-select-wrapper {
+        grid-column: 2 / 3;
+        grid-row: 2 / 3;
+        width: auto;
+        min-width: 115px;
+    }
+
+    .controls .custom-select-btn {
+        height: 40px;
+        min-width: 115px;
+        padding: 0 10px;
+        font-size: 12px;
+        border-radius: 10px;
+        gap: 6px;
+    }
+
+    .custom-options-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        min-width: 160px;
+        border-radius: 12px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
     }
 
     main {
-        width: calc(100% - 16px);
-        margin-top: 16px;
+        width: 100%;
+        padding: 12px 12px calc(24px + env(safe-area-inset-bottom, 0px));
     }
 
+    /* Compact 3-tile Overview Stats on Mobile */
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 9px 4px 7px;
+        gap: 4px;
+        border-radius: 12px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .stat-card:active {
+        transform: scale(0.96);
+        background: #f8fafc;
+    }
+
+    .stat-icon-wrap {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        margin-bottom: 2px;
+    }
+
+    .stat-icon-wrap svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-count {
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .stat-label {
+        font-size: 9.5px;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        color: var(--text-soft);
+        white-space: normal;
+    }
+
+    /* Category headers on Mobile */
     .category {
-        border-radius: 16px;
-        margin-bottom: 16px;
+        border-radius: 14px;
+        margin-bottom: 12px;
     }
 
     .titleBar {
-        min-height: 70px;
-        padding: 15px 16px;
+        min-height: 48px;
+        padding: 10px 12px;
+        gap: 8px;
     }
 
     .titleBar h2 {
-        font-size: 14px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
     }
 
     .titleBar h2::before {
         width: 7px;
         height: 7px;
-        margin-right: 10px;
+        margin-right: 7px;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.09);
+    }
+
+    .category:nth-of-type(1) .titleBar h2::before {
+        box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.12);
+    }
+
+    .category:nth-of-type(2) .titleBar h2::before {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    }
+
+    .category:nth-of-type(3) .titleBar h2::before {
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
     }
 
     .toggleCategory {
-        min-width: 82px;
-        height: 34px;
+        min-width: 70px;
+        height: 30px;
+        padding: 0 8px;
+        font-size: 11px;
+        gap: 4px;
+        border-radius: 999px;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .toggleCategory .category-count {
         font-size: 11px;
     }
 
+    .toggleCategory .caret {
+        width: 14px;
+        height: 14px;
+    }
+
+    .toggleCategory .caret svg {
+        width: 13px;
+        height: 13px;
+    }
+
+    /* People list on Mobile */
     .people {
         grid-template-columns: 1fr;
-        gap: 10px;
-        padding: 14px;
+        gap: 8px;
+        padding: 10px;
     }
 
     .person {
         width: 100%;
-        min-height: 68px;
-        padding: 11px 13px;
+        min-height: 52px;
+        padding: 10px 13px;
+        border-radius: 11px;
+        -webkit-tap-highlight-color: transparent;
+        transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .person::before {
+        width: 4px;
+    }
+
+    .person:active {
+        transform: scale(0.985);
+    }
+
+    .category:nth-of-type(1) .person:active {
+        background-color: #fff1f2;
+        border-color: #fda4af;
+    }
+
+    .category:nth-of-type(2) .person:active {
+        background-color: #f5f3ff;
+        border-color: #c7d2fe;
+    }
+
+    .category:nth-of-type(3) .person:active {
+        background-color: #fffbeb;
+        border-color: #fde68a;
+    }
+
+    .person .details {
+        gap: 2px;
+    }
+
+    .personName {
+        font-size: 13.5px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+    }
+
+    .TimeHappened {
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    /* Empty search state on Mobile */
+    .no-results-state {
+        padding: 28px 14px;
+        border-radius: 14px;
+        margin: 8px 0;
+    }
+
+    .no-results-icon {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 10px;
+    }
+
+    .no-results-title {
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .no-results-desc {
+        font-size: 12px;
+        max-width: 280px;
+        margin-bottom: 14px;
+    }
+
+    .btn-clear-search {
+        height: 36px;
+        padding: 0 16px;
+        font-size: 12px;
+        border-radius: 9px;
+    }
+
+    /* Back to Top button on Mobile */
+    .btn-back-to-top {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        bottom: max(14px, env(safe-area-inset-bottom, 0px) + 10px);
+        right: max(12px, env(safe-area-inset-right, 0px) + 10px);
     }
 }
 
-/* Extra small */
+/* Extra small screens */
 
-@media (max-width: 380px) {
-    .titleBar {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 12px;
+@media (max-width: 360px) {
+    .topbar h1 {
+        font-size: 14.5px;
     }
 
-    .categoryActions {
-        width: 100%;
+    #newFileBtn {
+        padding: 0 8px;
+        font-size: 11px;
     }
 
-    .toggleCategory {
-        width: 100%;
+    .controls .custom-select-btn {
+        min-width: 95px;
+        font-size: 11px;
+        padding: 0 8px;
+    }
+
+    .stat-count {
+        font-size: 15px;
+    }
+
+    .stat-label {
+        font-size: 9px;
+    }
+
+    .titleBar h2 {
+        font-size: 12px;
     }
 }
 
@@ -1734,12 +2005,12 @@ main::-webkit-scrollbar-thumb:active {
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.25);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .btn-back-to-top {
-        bottom: 20px;
-        right: 20px;
-        width: 42px;
-        height: 42px;
+        bottom: max(14px, env(safe-area-inset-bottom, 0px) + 10px);
+        right: max(12px, env(safe-area-inset-right, 0px) + 10px);
+        width: 40px;
+        height: 40px;
     }
 }
 

@@ -28,6 +28,17 @@ const descDiff = document.getElementById("descDiff");
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Analytics event tracker (100% privacy-safe: strictly anonymous actions without PII)
+function trackAnalyticsEvent(eventName, eventParams = {}) {
+    if (typeof window.gtag === "function") {
+        try {
+            window.gtag("event", eventName, eventParams);
+        } catch (e) {
+            console.debug("Analytics event error:", e);
+        }
+    }
+}
+
 function formatFileSize(bytes) {
     if (!bytes || bytes <= 0) return "0 B";
     if (bytes < 1024 * 1024) {
@@ -142,6 +153,10 @@ async function handleZipSelection(file) {
 
         people = processed;
 
+        trackAnalyticsEvent("archive_processed", {
+            total_profiles: people.length
+        });
+
         // Transition from loading page to info page
         if (loadingPage) loadingPage.style.display = "none";
         if (infoPage) infoPage.style.display = "flex";
@@ -200,6 +215,7 @@ if (dropZone && zipFileInput) {
 
 if (newFileBtn) {
     newFileBtn.addEventListener("click", () => {
+        trackAnalyticsEvent("change_zip_clicked");
         if (infoPage) infoPage.style.display = "none";
         if (loadingPage) loadingPage.style.display = "none";
         if (homePage) homePage.style.display = "flex";
@@ -395,6 +411,10 @@ if (sortCustomBtn && sortOptionsMenu && sortDropdown) {
             sortOptionsMenu.style.display = "none";
             sortCustomBtn.setAttribute("aria-expanded", "false");
 
+            trackAnalyticsEvent("sort_changed", {
+                sort_by: val
+            });
+
             showPeople();
         });
     });
@@ -468,6 +488,7 @@ if (backToTopBtn) {
     window.addEventListener("scroll", handleScroll);
 
     backToTopBtn.addEventListener("click", () => {
+        trackAnalyticsEvent("back_to_top_clicked");
         if (mainContainer) {
             mainContainer.scrollTo({
                 top: 0,
