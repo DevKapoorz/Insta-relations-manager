@@ -107,6 +107,7 @@ Insta Relations Manager operates entirely under a **Local-First Privacy & Defens
 - **100% Local Processing:** All operations (`JSZip` decompression, JSON parsing, set differences) run purely in your browser's local memory.
 - **Zero Data Transmission:** No network requests containing your followers, followings, or username data are ever made.
 - **XSS & Injection Protection:** All user strings and timestamps are rendered strictly via safe DOM text nodes (`textContent`). URLs are strictly validated to belong to `https://www.instagram.com/`, blocking all `javascript:`, `data:`, and malicious redirect vectors. Enforced with a strict Content Security Policy (CSP).
+- **Active Decompression-Time Memory Protection:** Unlike naive extractors that buffer entire payloads, our engine uses real-time stream chunk monitors (`internalStream`) with streaming `TextDecoder`. If an archive entry attempts to inflate beyond 2 MB or cumulative data crosses 5 MB, decompression is immediately terminated mid-flight before browser memory is consumed. Includes an 8-second timeout against algorithmic complexity exhaustion.
 - **ZIP Bomb & Huge-File Defenses:** Protected with multi-stage safety checks: 5 MB archive size limits, 500 file entry caps, path traversal guards, single-file decompression quotas (2 MB), and prototype pollution protection during JSON parsing.
 - **Anonymous Analytics:** Optional aggregate usage metrics only measure generic non-PII actions (e.g. archive processed count) with IP anonymization enabled.
 

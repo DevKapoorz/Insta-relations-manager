@@ -95,6 +95,7 @@ const SECURITY_LIMITS = {
     MAX_TARGET_JSON_FILES: 50,                     // 50 followers/following JSON chunks max
     MAX_SINGLE_FILE_DECOMPRESSED: 2 * 1024 * 1024, // 2 MB max decompressed size for a single JSON file
     MAX_TOTAL_DECOMPRESSED: 5 * 1024 * 1024,       // 5 MB total decompressed JSON size across all files
+    DECOMPRESSION_TIMEOUT_MS: 8000,                // 8 seconds max per file decompression
 };
 
 /**
@@ -351,23 +352,150 @@ async function processZipFile(zipFile, onProgress = null) {
     // Decompression monitor to prevent runaway memory expansion
     let totalDecompressedBytes = 0;
 
-    async function safelyExtractAndParse(file) {
-        // Pre-check uncompressed size metadata from ZIP headers if available
-        const uncompressedSize = file._data?.uncompressedSize || 0;
-        if (uncompressedSize > SECURITY_LIMITS.MAX_SINGLE_FILE_DECOMPRESSED) {
+    async function streamDecompressFile(file) {
+        // Step 1: Pre-check header uncompressedSize (if provided by ZIP local header)
+        const headerUncompressedSize = file._data?.uncompressedSize || 0;
+        if (headerUncompressedSize > SECURITY_LIMITS.MAX_SINGLE_FILE_DECOMPRESSED) {
             throw new Error(
                 `Decompressed file "${file.name}" exceeds the maximum safety limit of 2 MB. Aborted to protect browser memory.`,
             );
         }
 
+        // Step 2: Stream-based chunk-by-chunk decompression with real-time memory abort
+        if (typeof file.internalStream === "function") {
+            return new Promise((resolve, reject) => {
+                let bytesRead = 0;
+                let aborted = false;
+                const decoder = new TextDecoder("utf-8");
+                let decodedText = "";
+
+                let stream = null;
+
+                // Decompression timeout protection (protects against CPU-hanging archives)
+                const timeoutId = setTimeout(() => {
+                    if (!aborted) {
+                        aborted = true;
+                        try {
+                            if (stream && typeof stream.pause === "function") {
+                                stream.pause();
+                            }
+                        } catch (_) {}
+                        decodedText = "";
+                        reject(
+                            new Error(
+                                `Decompression of "${file.name}" timed out after ${SECURITY_LIMITS.DECOMPRESSION_TIMEOUT_MS / 1000}s. Operation aborted.`,
+                            ),
+                        );
+                    }
+                }, SECURITY_LIMITS.DECOMPRESSION_TIMEOUT_MS);
+
+                try {
+                    stream = file.internalStream("uint8array");
+                } catch (streamErr) {
+                    clearTimeout(timeoutId);
+                    return reject(streamErr);
+                }
+
+                stream.on("data", (chunk) => {
+                    if (aborted) return;
+
+                    bytesRead += chunk.length;
+
+                    // Real-time chunk limit check: Single file quota (2 MB)
+                    if (bytesRead > SECURITY_LIMITS.MAX_SINGLE_FILE_DECOMPRESSED) {
+                        aborted = true;
+                        clearTimeout(timeoutId);
+                        try {
+                            stream.pause();
+                        } catch (_) {}
+                        decodedText = "";
+                        reject(
+                            new Error(
+                                `Decompression aborted: File "${file.name}" exceeded the 2 MB memory quota during active decompression.`,
+                            ),
+                        );
+                        return;
+                    }
+
+                    // Real-time chunk limit check: Total cumulative quota (5 MB)
+                    if (totalDecompressedBytes + bytesRead > SECURITY_LIMITS.MAX_TOTAL_DECOMPRESSED) {
+                        aborted = true;
+                        clearTimeout(timeoutId);
+                        try {
+                            stream.pause();
+                        } catch (_) {}
+                        decodedText = "";
+                        reject(
+                            new Error(
+                                `Decompression aborted: Cumulative extracted data exceeded the 5 MB memory quota during active decompression.`,
+                            ),
+                        );
+                        return;
+                    }
+
+                    // Streaming decode into text string without extra intermediate Uint8Array allocations
+                    try {
+                        decodedText += decoder.decode(chunk, { stream: true });
+                    } catch (decodeErr) {
+                        aborted = true;
+                        clearTimeout(timeoutId);
+                        try {
+                            stream.pause();
+                        } catch (_) {}
+                        decodedText = "";
+                        reject(decodeErr);
+                        return;
+                    }
+                });
+
+                stream.on("error", (err) => {
+                    clearTimeout(timeoutId);
+                    if (!aborted) {
+                        aborted = true;
+                        decodedText = "";
+                        reject(err);
+                    }
+                });
+
+                stream.on("end", () => {
+                    clearTimeout(timeoutId);
+                    if (aborted) return;
+
+                    try {
+                        // Flush any remaining characters in decoder
+                        decodedText += decoder.decode();
+                        totalDecompressedBytes += bytesRead;
+                        resolve(decodedText);
+                    } catch (flushErr) {
+                        reject(flushErr);
+                    }
+                });
+
+                stream.resume();
+            });
+        }
+
+        // Step 3: Fallback for environments where internalStream is unavailable
         const text = await file.async("text");
         totalDecompressedBytes += text.length;
+
+        if (text.length > SECURITY_LIMITS.MAX_SINGLE_FILE_DECOMPRESSED) {
+            throw new Error(
+                `Decompressed file "${file.name}" exceeds the maximum safety limit of 2 MB.`,
+            );
+        }
 
         if (totalDecompressedBytes > SECURITY_LIMITS.MAX_TOTAL_DECOMPRESSED) {
             throw new Error(
                 "Total extracted JSON data exceeds the 5 MB safety limit. Aborted to protect against runaway memory expansion.",
             );
         }
+
+        return text;
+    }
+
+    async function safelyExtractAndParse(file) {
+        const text = await streamDecompressFile(file);
 
         // Parse with prototype pollution guard
         return JSON.parse(text, (key, value) => {
