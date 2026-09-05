@@ -111,25 +111,26 @@
             async
             src="https://www.googletagmanager.com/gtag/js?id=G-HKKSHL5R9C"
         ></script>
+
         <script>
             window.dataLayer = window.dataLayer || [];
+
             function gtag() {
                 dataLayer.push(arguments);
             }
+
             gtag("js", new Date());
 
-            // Default configuration (replace G-XXXXXXXXXX with your Measurement ID)
-            const GA_MEASUREMENT_ID = "G-HKKSHL5R9C";
-            if (GA_MEASUREMENT_ID && GA_MEASUREMENT_ID !== "G-HKKSHL5R9C") {
-                gtag("config", GA_MEASUREMENT_ID, {
-                    anonymize_ip: true,
-                    send_page_view: true,
-                });
-            }
+            gtag("config", "G-HKKSHL5R9C", {
+                send_page_view: true,
+                anonymize_ip: true,
+                allow_google_signals: false,
+                allow_ad_personalization_signals: false,
+            });
         </script>
 
         <link rel="stylesheet" href="style.css" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="./jszip.min.js"></script>
     </head>
 
     <body>

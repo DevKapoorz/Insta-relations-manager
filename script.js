@@ -84,9 +84,9 @@ async function handleZipSelection(file) {
         return;
     }
 
-    const MAX_INPUT_FILE_SIZE = 100 * 1024 * 1024; // 100 MB max
+    const MAX_INPUT_FILE_SIZE = 5 * 1024 * 1024; // 5 MB max
     if (file.size > MAX_INPUT_FILE_SIZE) {
-        setStatus(`File is too large (${formatFileSize(file.size)}). Maximum supported size is 100 MB to prevent browser freeze.`, "error");
+        setStatus(`File is too large (${formatFileSize(file.size)}). Maximum supported size is 5 MB to prevent browser freeze.`, "error");
         return;
     }
 

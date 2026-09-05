@@ -90,11 +90,11 @@ async function pendingFollowRequests() {
 
 // Security Limits for Archive & Decompression Protection
 const SECURITY_LIMITS = {
-    MAX_ZIP_SIZE: 100 * 1024 * 1024,                // 100 MB max archive size
-    MAX_ENTRIES_IN_ZIP: 2500,                        // 2,500 entries max in ZIP
-    MAX_TARGET_JSON_FILES: 50,                       // 50 followers/following JSON chunks max
-    MAX_SINGLE_FILE_DECOMPRESSED: 40 * 1024 * 1024,  // 40 MB max decompressed size for a single JSON file
-    MAX_TOTAL_DECOMPRESSED: 100 * 1024 * 1024,       // 100 MB total decompressed JSON size across all files
+    MAX_ZIP_SIZE: 5 * 1024 * 1024,                 // 5 MB max archive size
+    MAX_ENTRIES_IN_ZIP: 500,                       // 500 entries max in ZIP
+    MAX_TARGET_JSON_FILES: 50,                     // 50 followers/following JSON chunks max
+    MAX_SINGLE_FILE_DECOMPRESSED: 2 * 1024 * 1024, // 2 MB max decompressed size for a single JSON file
+    MAX_TOTAL_DECOMPRESSED: 5 * 1024 * 1024,       // 5 MB total decompressed JSON size across all files
 };
 
 /**
@@ -260,7 +260,7 @@ async function processZipFile(zipFile, onProgress = null) {
     // 1. Check archive file size before unzipping
     if (zipFile.size > SECURITY_LIMITS.MAX_ZIP_SIZE) {
         throw new Error(
-            `ZIP file exceeds maximum allowed size of 100 MB (${(zipFile.size / (1024 * 1024)).toFixed(1)} MB). Processing aborted to prevent system freeze.`,
+            `ZIP file exceeds maximum allowed size of 5 MB (${(zipFile.size / (1024 * 1024)).toFixed(1)} MB). Processing aborted to prevent system freeze.`,
         );
     }
 
@@ -356,7 +356,7 @@ async function processZipFile(zipFile, onProgress = null) {
         const uncompressedSize = file._data?.uncompressedSize || 0;
         if (uncompressedSize > SECURITY_LIMITS.MAX_SINGLE_FILE_DECOMPRESSED) {
             throw new Error(
-                `Decompressed file "${file.name}" exceeds the maximum safety limit of 40 MB. Aborted to protect browser memory.`,
+                `Decompressed file "${file.name}" exceeds the maximum safety limit of 2 MB. Aborted to protect browser memory.`,
             );
         }
 
@@ -365,7 +365,7 @@ async function processZipFile(zipFile, onProgress = null) {
 
         if (totalDecompressedBytes > SECURITY_LIMITS.MAX_TOTAL_DECOMPRESSED) {
             throw new Error(
-                "Total extracted JSON data exceeds the 100 MB safety limit. Aborted to protect against runaway memory expansion.",
+                "Total extracted JSON data exceeds the 5 MB safety limit. Aborted to protect against runaway memory expansion.",
             );
         }
 
