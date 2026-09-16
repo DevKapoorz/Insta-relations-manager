@@ -1,3 +1,7 @@
+async function removeDuplicates() {
+    
+}
+
 async function fetchJSONData(file_url) {
     return await fetch(file_url)
         .then((response) => {
@@ -31,35 +35,86 @@ async function getFollowings() {
         await fetchJSONData("./followers_and_following/following.json")
     ).relationships_following;
 
-    return flwings
-        .filter((user) => {
-            const title = user.title;
-            const href = user.string_list_data?.[0]?.href;
+    const uniqueFollowings = new Map();
 
-            // Exclude deleted/deactivated accounts
-            return (
-                title &&
-                title.trim() !== "" &&
-                href &&
-                href.includes("instagram.com")
-            );
-        })
-        .map((user) => ({
-            title: user.title,
-            profileUrl: user.string_list_data[0].href,
-            timeStamp: user.string_list_data[0].timestamp,
-        }));
+    flwings.forEach((user) => {
+        const title = user.title;
+        const data = user.string_list_data?.[0];
+        const href = data?.href;
+        const timestamp = data?.timestamp;
+
+        // Exclude deleted/deactivated accounts
+        if (
+            !title ||
+            title.trim() === "" ||
+            !href ||
+            !href.includes("instagram.com")
+        ) {
+            return;
+        }
+
+        const existing = uniqueFollowings.get(href);
+
+        // Add new entry or replace with the latest timestamp
+        if (
+            !existing ||
+            Number(timestamp) > Number(existing.timeStamp)
+        ) {
+            uniqueFollowings.set(href, {
+                title,
+                profileUrl: href,
+                timeStamp: timestamp,
+            });
+        }
+    });
+    
+    return [...uniqueFollowings.values()];
 }
 async function getFollowers() {
     const flwers = await fetchJSONData(
-        "./followers_and_following/followers_1.json",
+        "./followers_and_following/followers_1.json"
     );
-    
-    return flwers.map((user) => ({
-        title: user.string_list_data[0].value,
-        profileUrl: user.string_list_data[0].href,
-        timeStamp: user.string_list_data[0].timestamp,
-    }));
+
+    const followers = [];
+
+    flwers.forEach((user) => {
+        const data = user.string_list_data?.[0];
+        const title = data?.value;
+        const href = data?.href;
+        const timestamp = data?.timestamp;
+
+        // Exclude invalid/deleted/deactivated accounts
+        if (
+            !title ||
+            title.trim() === "" ||
+            !href ||
+            !href.includes("instagram.com")
+        ) {
+            return;
+        }
+
+        const existingIndex = followers.findIndex(
+            (item) => item.profileUrl === href
+        );
+
+        if (existingIndex === -1) {
+            followers.push({
+                title,
+                profileUrl: href,
+                timeStamp: timestamp,
+            });
+        } else if (
+            Number(timestamp) > Number(followers[existingIndex].timeStamp)
+        ) {
+            followers[existingIndex] = {
+                title,
+                profileUrl: href,
+                timeStamp: timestamp,
+            };
+        }
+    });
+
+    return followers;
 }
 async function whoDontFollowBack() {
     const followings = await getFollowings();
@@ -67,7 +122,6 @@ async function whoDontFollowBack() {
 
     return getMissing(followings, followers, "Who don't follow you back");
 }
-
 async function whomIDontFollowBack() {
     const followings = await getFollowings();
     const followers = await getFollowers();
@@ -216,6 +270,7 @@ function parsePendingRequestsData(rawPending) {
     return pflwreq
         .map((user) => {
             let rawUsername = "";
+            let rawHref = "";
             if (Array.isArray(user.label_values)) {
                 const usernameItem =
                     user.label_values.find(
@@ -226,10 +281,13 @@ function parsePendingRequestsData(rawPending) {
                     user.label_values[2] ||
                     user.label_values[1];
                 rawUsername = usernameItem?.value || "";
+                rawHref = usernameItem?.href || "";
             } else if (user.string_list_data?.[0]?.value) {
                 rawUsername = user.string_list_data[0].value;
+                rawHref = user.string_list_data[0].href || "";
             } else if (user.title) {
                 rawUsername = user.title;
+                rawHref = user.string_list_data?.[0]?.href || "";
             }
 
             const username = sanitizeUsername(rawUsername);
@@ -239,9 +297,10 @@ function parsePendingRequestsData(rawPending) {
 
             return {
                 name: username,
-                id: sanitizeInstagramUrl("", username),
+                id: sanitizeInstagramUrl(rawHref, username),
                 timeStamp: Number.isFinite(timeStamp) ? timeStamp : 0,
                 category: "Pending Follow Requests",
+                isDeactivated: false,
             };
         })
         .filter((user) => user.name !== "");
