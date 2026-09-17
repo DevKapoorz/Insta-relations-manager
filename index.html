@@ -105,6 +105,29 @@
             }
         </script>
 
+        <!-- Google tag (gtag.js) - Google Analytics -->
+        <!-- Replace 'G-XXXXXXXXXX' with your Google Analytics 4 Measurement ID -->
+        <script
+            async
+            src="https://www.googletagmanager.com/gtag/js?id=G-HKKSHL5R9C"
+        ></script>
+
+        <script>
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+
+            gtag("js", new Date());
+
+            gtag("config", "G-HKKSHL5R9C", {
+                send_page_view: true,
+                anonymize_ip: true,
+                allow_google_signals: false,
+                allow_ad_personalization_signals: false,
+            });
+        </script>
 
         <link rel="stylesheet" href="style.css" />
         <script src="./jszip.min.js"></script>
