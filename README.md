@@ -8,9 +8,31 @@
 
 ---
 
-## 🚀 Live Demo
+##  Live Demo
 
-👉 **[Launch Insta Relations Manager](https://devkapoorz.github.io/Insta-relations-manager/)**
+ **[Launch Insta Relations Manager](https://devkapoorz.github.io/Insta-relations-manager/)**
+
+---
+
+## 📥 How to Get Your Instagram Data
+
+1. Open Instagram on your mobile app or web browser.
+2. Go to **Settings & Privacy** &rarr; **Accounts Center**.
+3. Select **Your information and permissions** &rarr; **Download your information**.
+4. Choose **Download or transfer information**, select your profile, and pick **Some of your information**.
+5. Select **Followers and following** under Connections.
+6. Under Format, select **JSON** (⚠️ *Important: Do not select HTML*).
+7. Submit request. Once Instagram sends the download link, download the `.zip` archive.
+
+---
+
+## 🛠️ How to Use
+
+1. Open **[Insta Relations Manager](https://devkapoorz.github.io/Insta-relations-manager/)** in any modern web browser.
+2. Drag and drop your downloaded Instagram `.zip` file into the upload zone, or click **Browse ZIP File**.
+3. Watch the real-time progress checklist as your archive is extracted and analyzed.
+4. Browse your non-followers, fans, and pending requests with instant search and sorting!
+5. To check another archive, simply click **Change ZIP** in the top navigation bar.
 
 ---
 
@@ -37,67 +59,6 @@ Most "Instagram unfollower" apps require entering your Instagram username and pa
 - **Clean Minimalist Profile Cards:** 4-column responsive grid on desktop, 2 columns on tablet, and single-column on mobile. Native link cards show the profile URL in your browser's bottom-left status bar on hover and open directly in a new tab upon click.
 - **Mobile-First Responsive Design:** Modern 2-row sticky navigation header, compact metric bar, touch micro-press feedback, and iOS home-indicator safe-area integration.
 - **Back to Top Button:** Smooth floating button for convenient navigation when browsing large account lists.
-
----
-
-## 📥 How to Get Your Instagram Data
-
-1. Open Instagram on your mobile app or web browser.
-2. Go to **Settings & Privacy** &rarr; **Accounts Center**.
-3. Select **Your information and permissions** &rarr; **Download your information**.
-4. Choose **Download or transfer information**, select your profile, and pick **Some of your information**.
-5. Select **Followers and following** under Connections.
-6. Under Format, select **JSON** (⚠️ *Important: Do not select HTML*).
-7. Submit request. Once Instagram sends the download link, download the `.zip` archive.
-
----
-
-## 🛠️ How to Use
-
-1. Open **[Insta Relations Manager](https://devkapoorz.github.io/Insta-relations-manager/)** in any modern web browser.
-2. Drag and drop your downloaded Instagram `.zip` file into the upload zone, or click **Browse ZIP File**.
-3. Watch the real-time progress checklist as your archive is extracted and analyzed.
-4. Browse your non-followers, fans, and pending requests with instant search and sorting!
-5. To check another archive, simply click **Change ZIP** in the top navigation bar.
-
----
-
-## 💻 Local Development Setup
-
-No build tools, compilation, or external package managers required.
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/DevKapoorz/Insta-relations-manager.git
-cd Insta-relations-manager
-```
-
-### 2. Serve the directory
-You can open `index.html` directly in your browser or run any local HTTP server:
-
-```bash
-# Using Python 3
-python -m http.server 8000
-
-# Or using Node.js
-npx serve .
-```
-
-Open `http://localhost:8000` in your web browser.
-
----
-
-## 🗂️ Project Structure
-
-```text
-├── index.html            # Main markup with SEO metadata, structured data & UI views
-├── style.css             # Design system, CSS grid/flexbox, animations & mobile rules
-├── core.js               # Instagram relations calculation algorithms & ZIP parser
-├── script.js             # UI view orchestrator, search/sort filters & event handling
-├── robots.txt            # Search engine crawler permissions
-├── sitemap.xml           # XML sitemap for SEO indexing
-└── LICENSE               # Apache 2.0 open-source license
-```
 
 ---
 
