@@ -5,8 +5,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self';"
+            content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://www.google-analytics.com;
+        connect-src 'self' https://www.google-analytics.com https://analytics.google.com;
+        object-src 'none';
+        base-uri 'self';
+    "
         />
+
         <title>
             Insta Relations Manager – Free & Private Instagram Unfollowers
             Tracker
