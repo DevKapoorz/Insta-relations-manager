@@ -74,6 +74,27 @@ Insta Relations Manager operates entirely under a **Local-First Privacy & Defens
 
 ---
 
+## 🚀 What's New
+
+- 🌙 **System-Aware Dark Theme:** Complete dark mode leaning towards sleek neutral charcoal/slate tones instead of deep blue.
+  - Automatically detects your OS/browser system color scheme preference.
+  - Manual on-screen toggle button accessible on all pages (floating toggle on landing & loading screens, control-bar toggle in the results topbar).
+  - Remembers your choice across sessions with zero theme-flicker on page reloads.
+  - Seamless SVG icon transitions between sun and moon states.
+- 🎨 **Modular SVG Sprite Architecture:** Extracted all icons into `styles/icons.svg` symbols, improving cacheability, maintainability, and drastically reducing HTML bundle overhead.
+- 📱 **Enhanced Mobile Topbar & UI:** Adaptive topbar grid on mobile screens ensuring search, sort, change archive, and theme toggle controls remain perfectly aligned without layout shifting.
+
+---
+
+## 🔮 Upcoming Features
+
+- 📥 **Export to CSV / JSON / ... :** One-click option to download your categorized relation lists (non-followers, fans, pending requests) for offline record-keeping.
+  - Export to various formats including CSV, JSON, XML , MS Word, PDF.
+  - Decide what categories you want to export ( people who don't follow back, whom I don't folllow back ,pending follow requests ).
+  - Decide what details you want to include ( UserId, hyperlink, timestamps ).
+  - File structure would be as per your preferences.
+---
+
 ## 📄 License
 
 This project is licensed under the **Apache License 2.0** - see the [LICENSE](LICENSE) file for details.

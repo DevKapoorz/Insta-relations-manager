@@ -516,3 +516,43 @@ if (backToTopBtn) {
         });
     });
 }
+
+// =========================================================
+// DARK / LIGHT THEME MANAGER
+// =========================================================
+function getCurrentTheme() {
+    return document.documentElement.getAttribute("data-theme") || "light";
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    try {
+        localStorage.setItem("theme", theme);
+    } catch (e) {}
+    trackAnalyticsEvent("theme_changed", { theme });
+}
+
+function toggleTheme() {
+    const current = getCurrentTheme();
+    const next = current === "dark" ? "light" : "dark";
+    setTheme(next);
+}
+
+// Bind theme toggle buttons
+["homeThemeToggle", "loadingThemeToggle", "topbarThemeToggle"].forEach((btnId) => {
+    const btn = document.getElementById(btnId);
+    if (btn) {
+        btn.addEventListener("click", toggleTheme);
+    }
+});
+
+// Listen for system theme changes if user hasn't set an explicit preference
+try {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    mediaQuery.addEventListener("change", (e) => {
+        const saved = localStorage.getItem("theme");
+        if (!saved) {
+            setTheme(e.matches ? "dark" : "light");
+        }
+    });
+} catch (e) {}

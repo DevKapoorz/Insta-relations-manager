@@ -412,3 +412,44 @@
         height: 40px;
     }
 }
+
+/* Theme Toggle Responsive Rules */
+@media (max-width: 640px) {
+    .floating-theme-toggle {
+        top: 14px;
+        right: 14px;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .btn-theme-toggle {
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+    }
+
+    .topbar {
+        grid-template-columns: 1fr auto auto;
+    }
+
+    .controls input {
+        grid-column: 1 / 2;
+        grid-row: 2 / 3;
+    }
+
+    .controls .custom-select-wrapper {
+        grid-column: 2 / 4;
+        grid-row: 2 / 3;
+    }
+}
+
+:root[data-theme="dark"] .topbar {
+    border-bottom-color: rgba(48, 54, 61, 0.9);
+}
+
+:root[data-theme="dark"] .stat-card:active {
+    background: #21262d;
+}

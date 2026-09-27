@@ -268,3 +268,51 @@
         border-radius: 14px;
     }
 }
+
+:root[data-theme="dark"] .loading-card {
+    background: rgba(22, 27, 34, 0.96);
+    border-color: rgba(48, 54, 61, 0.9);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="dark"] .file-summary {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+:root[data-theme="dark"] .file-icon {
+    background: #21262d;
+    border-color: #30363d;
+}
+
+:root[data-theme="dark"] .progress-track-large {
+    background: #21262d;
+}
+
+:root[data-theme="dark"] .detail-item {
+    background: #161b22;
+    border-color: #21262d;
+}
+
+:root[data-theme="dark"] .detail-item.active {
+    background: #21262d;
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .detail-item.completed {
+    background: #161b22;
+    border-color: #30363d;
+}
+
+:root[data-theme="dark"] .detail-indicator {
+    background: #30363d;
+}
+
+:root[data-theme="dark"] .detail-indicator .dot {
+    background: #6e7681;
+}
+
+:root[data-theme="dark"] .detail-item.completed .detail-desc {
+    color: #34d399;
+}
