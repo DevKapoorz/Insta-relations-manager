@@ -1,0 +1,22 @@
+{
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Insta Relations Manager",
+    "url": "https://devkapoorz.github.io/Insta-relations-manager/",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "All",
+    "description": "A 100% private, client-side web application to track who doesn't follow you back on Instagram, identify fans you don't follow back, and view pending follow requests without entering credentials.",
+    "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "INR"
+    },
+    "featureList": [
+        "Find who doesn't follow you back on Instagram",
+        "Discover accounts you don't follow back",
+        "View pending follow requests",
+        "100% local in-browser processing with zero server uploads",
+        "Instant search and sorting by username or timestamp",
+        "Safe and private with no Instagram password or login needed"
+    ]
+}
