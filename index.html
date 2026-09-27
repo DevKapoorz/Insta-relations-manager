@@ -89,7 +89,6 @@
             content="Discover who doesn't follow you back on Instagram safely without sharing your password. 100% private, local browser processing."
         />
 
-        <!-- Structured Data (JSON-LD) for Search Engines -->
         <script type="application/ld+json">
             {
                 "@context": "https://schema.org",
@@ -114,9 +113,6 @@
                 ]
             }
         </script>
-
-        <!-- Google tag (gtag.js) - Google Analytics -->
-        <!-- Replace 'G-XXXXXXXXXX' with your Google Analytics 4 Measurement ID -->
         <script
             async
             src="https://www.googletagmanager.com/gtag/js?id=G-HKKSHL5R9C"
@@ -139,8 +135,15 @@
             });
         </script>
 
-        <link rel="stylesheet" href="style.css" />
-        <script src="./jszip.min.js"></script>
+        <div class="links">
+            <link rel="stylesheet" href="./styles/main.css" />
+            <link rel="stylesheet" href="./styles/landing.css" />
+            <link rel="stylesheet" href="./styles/process.css" />
+            <link rel="stylesheet" href="./styles/topbar.css" />
+            <link rel="stylesheet" href="./styles/results.css" />
+            <link rel="stylesheet" href="./styles/devices.css">
+        </div>
+        <script src="./scripts/jszip.min.js"></script>
     </head>
 
     <body>
@@ -816,7 +819,7 @@
             </button>
         </div>
 
-        <script src="./core.js"></script>
-        <script src="script.js"></script>
+        <script src="./scripts/core.js"></script>
+        <script src="./scripts/script.js"></script>
     </body>
 </html>

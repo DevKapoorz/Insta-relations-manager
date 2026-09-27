@@ -1,0 +1,116 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f6f7fb;
+    --white: #fff;
+    --text: #111827;
+    --text-soft: #475569;
+    --muted: #94a3b8;
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #eef2ff;
+    --border: #e8ebf2;
+    --card: #fafbfc;
+    --shadow:
+        0 8px 30px rgba(15, 23, 42, 0.055), 0 2px 8px rgba(15, 23, 42, 0.025);
+    --shadow-hover:
+        0 16px 35px rgba(15, 23, 42, 0.09), 0 3px 10px rgba(15, 23, 42, 0.04);
+}
+
+html {
+    scroll-behavior: smooth;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    min-height: 100vh;
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(
+            circle at 0% 0%,
+            rgba(99, 102, 241, 0.08),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 100% 0%,
+            rgba(59, 130, 246, 0.055),
+            transparent 28%
+        ),
+        var(--bg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+main {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 70, 229, 0.28) transparent;
+}
+
+main::-webkit-scrollbar {
+    width: 10px;
+}
+
+main::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 8px 2px;
+}
+
+main::-webkit-scrollbar-thumb {
+    background: rgba(79, 70, 229, 0.24);
+
+    border: 3px solid transparent;
+    border-radius: 999px;
+
+    background-clip: padding-box;
+
+    transition: background 0.2s ease;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 70, 229, 0.48);
+
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+main::-webkit-scrollbar-thumb:active {
+    background: rgba(67, 56, 202, 0.65);
+
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+main {
+    position: relative;
+    flex: 1;
+
+    width: 100%;
+    max-width: none;
+
+    margin: 0;
+
+    padding: 38px max(3%, 16px) 70px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+}
